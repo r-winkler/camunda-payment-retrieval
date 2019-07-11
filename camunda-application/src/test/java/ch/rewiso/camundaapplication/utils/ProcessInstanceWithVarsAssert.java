@@ -19,6 +19,12 @@ public class ProcessInstanceWithVarsAssert extends ProcessInstanceAssert {
         return new ProcessInstanceWithVarsAssert(engine, actual);
     }
 
+    public ProcessInstanceWithVarsAssert printVars() {
+
+        System.out.println(super.vars());
+        return this;
+    }
+
     public ProcessInstanceWithVarsAssert hasVariableEntry(String key, Object value) {
 
         org.assertj.core.api.Assertions.assertThat(super.vars()).contains(entry(key, value));

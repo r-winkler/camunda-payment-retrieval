@@ -85,6 +85,7 @@ public class CamundaApplicationTests {
         assertThat(processInstance).hasPassedInOrder(START_EVENT_ID, AMOUNT_GATEWAY_ID, CHARGE_CREDIT_CARD_TASK_ID, SEND_NOTIFICATION_TASK_ID, END_RECEIVED_EVENT_ID);
 
         BpmnAwareWithVarsTests.assertThat(processInstance)
+                .printVars()
                 .hasNoVariable(VAR_APPROVED)
                 .hasVariableEntry(VAR_AMOUNT, AMOUNT_ALLOWED)
                 .hasVariableEntry(VAR_ITEM, ITEM_NOT_ALLOWED)
