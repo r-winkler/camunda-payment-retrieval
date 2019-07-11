@@ -24,6 +24,8 @@ public class ChargeCardHandlerTest {
 
         ChargeCardHandler.getTaskHandler().execute(externalTask, externalTaskService);
 
+        // test business logic here
+
         verify(externalTask, times(1)).getVariable("item");
         verify(externalTask, times(1)).getVariable("amount");
         verify(externalTaskService, times(1)).complete(externalTask);
