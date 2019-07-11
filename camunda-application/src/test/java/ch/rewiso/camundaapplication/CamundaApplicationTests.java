@@ -1,5 +1,6 @@
 package ch.rewiso.camundaapplication;
 
+import ch.rewiso.camundaapplication.utils.BpmnAwareWithVarsTests;
 import org.camunda.bpm.engine.ProcessEngine;
 import org.camunda.bpm.engine.RuntimeService;
 import org.camunda.bpm.engine.runtime.ProcessInstance;
@@ -61,7 +62,11 @@ public class CamundaApplicationTests {
 
         assertThat(processInstance).hasPassedInOrder(START_EVENT_ID, AMOUNT_GATEWAY_ID, APPROVE_PAYMENT_TASK_ID, REVIEW_REJECTED_TASK_ID, END_REJECTED_EVENT_ID);
 
-        assertThat(processInstance).isEnded();
+        BpmnAwareWithVarsTests.assertThat(processInstance)
+                .hasVariableEntry(VAR_APPROVED, false)
+                .hasVariableEntry(VAR_AMOUNT, AMOUNT_NOT_ALLOWED)
+                .hasVariableEntry(VAR_ITEM, ITEM_NOT_ALLOWED)
+                .isEnded();
 
     }
 
@@ -79,7 +84,11 @@ public class CamundaApplicationTests {
 
         assertThat(processInstance).hasPassedInOrder(START_EVENT_ID, AMOUNT_GATEWAY_ID, CHARGE_CREDIT_CARD_TASK_ID, SEND_NOTIFICATION_TASK_ID, END_RECEIVED_EVENT_ID);
 
-        assertThat(processInstance).isEnded();
+        BpmnAwareWithVarsTests.assertThat(processInstance)
+                .hasNoVariable(VAR_APPROVED)
+                .hasVariableEntry(VAR_AMOUNT, AMOUNT_ALLOWED)
+                .hasVariableEntry(VAR_ITEM, ITEM_NOT_ALLOWED)
+                .isEnded();
 
     }
 
@@ -97,7 +106,11 @@ public class CamundaApplicationTests {
 
         assertThat(processInstance).hasPassedInOrder(START_EVENT_ID, AMOUNT_GATEWAY_ID, APPROVE_PAYMENT_TASK_ID, CHARGE_CREDIT_CARD_TASK_ID, SEND_NOTIFICATION_TASK_ID, END_RECEIVED_EVENT_ID);
 
-        assertThat(processInstance).isEnded();
+        BpmnAwareWithVarsTests.assertThat(processInstance)
+                .hasVariableEntry(VAR_APPROVED, true)
+                .hasVariableEntry(VAR_AMOUNT, AMOUNT_NOT_ALLOWED)
+                .hasVariableEntry(VAR_ITEM, ITEM_ALLOWED)
+                .isEnded();
 
     }
 
@@ -119,7 +132,11 @@ public class CamundaApplicationTests {
 
         assertThat(processInstance).hasPassedInOrder(START_EVENT_ID, AMOUNT_GATEWAY_ID, APPROVE_PAYMENT_TASK_ID, REVIEW_REJECTED_TASK_ID, CHARGE_CREDIT_CARD_TASK_ID, SEND_NOTIFICATION_TASK_ID, END_RECEIVED_EVENT_ID);
 
-        assertThat(processInstance).isEnded();
+        BpmnAwareWithVarsTests.assertThat(processInstance)
+                .hasVariableEntry(VAR_APPROVED, true)
+                .hasVariableEntry(VAR_AMOUNT, AMOUNT_NOT_ALLOWED)
+                .hasVariableEntry(VAR_ITEM, ITEM_NOT_ALLOWED)
+                .isEnded();
 
     }
 
