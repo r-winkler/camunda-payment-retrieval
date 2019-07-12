@@ -36,7 +36,7 @@ public class CamundaUnitTest {
                 VAR_ITEM, ITEM_NOT_ALLOWED);
 
         assertThat(processInstance).hasPassedInOrder(START_EVENT_ID, AMOUNT_GATEWAY_ID, APPROVE_PAYMENT_TASK_ID, REVIEW_REJECTED_TASK_ID, END_REJECTED_EVENT_ID);
-        
+
         assertThat(processInstance).isWaitingAt(REVIEW_REJECTED_TASK_ID);
 
         complete(task(), withVariables(VAR_APPROVED, false));
