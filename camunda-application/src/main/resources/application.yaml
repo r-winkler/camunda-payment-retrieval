@@ -7,3 +7,15 @@ camunda:
     filter:
       create: All tasks
     deployment-resource-pattern: classpath*:**/*.bpmn, **/*.dmn, **/*.cmmn
+    generic-properties:
+      properties:
+        # cleanup was not tested...
+        historyTimeToLive: 5
+        historyCleanupStrategy: removalTimeBased
+        historyRemovalTimeStrategy: end
+        historyCleanupBatchSize: 200
+        historyCleanupBatchWindowStartTime: 02:15
+        historyCleanupBatchWindowEndTime: 02:45
+
+
+
