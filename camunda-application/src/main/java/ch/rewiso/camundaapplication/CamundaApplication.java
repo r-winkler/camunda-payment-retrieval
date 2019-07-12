@@ -43,11 +43,11 @@ public class CamundaApplication {
     @EventListener
     private void processPostDeploy(PostDeployEvent event) {
 
-        Map<String,Object> variables = new HashMap<>();
-        variables.put(VAR_AMOUNT, 1200L);
-        variables.put(VAR_ITEM, "item-nallowed");
-
-        runtimeService.startProcessInstanceByKey(PROCESS_ID, variables);
+//        Map<String,Object> variables = new HashMap<>();
+//        variables.put(VAR_AMOUNT, 1200L);
+//        variables.put(VAR_ITEM, "item-nallowed");
+//
+//        runtimeService.startProcessInstanceByKey(PROCESS_ID, variables);
     }
 
 

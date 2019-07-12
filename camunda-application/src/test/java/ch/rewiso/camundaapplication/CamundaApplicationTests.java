@@ -1,9 +1,9 @@
 package ch.rewiso.camundaapplication;
 
-import ch.rewiso.camundaapplication.utils.BpmnAwareWithVarsTests;
 import org.camunda.bpm.engine.ProcessEngine;
 import org.camunda.bpm.engine.RuntimeService;
 import org.camunda.bpm.engine.runtime.ProcessInstance;
+import org.camunda.bpm.engine.test.Deployment;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -58,16 +58,16 @@ public class CamundaApplicationTests {
 
         assertThat(processInstance).isWaitingAt(REVIEW_REJECTED_TASK_ID);
 
+
         complete(task(), withVariables(VAR_APPROVED, false));
 
         assertThat(processInstance).hasPassedInOrder(START_EVENT_ID, AMOUNT_GATEWAY_ID, APPROVE_PAYMENT_TASK_ID, REVIEW_REJECTED_TASK_ID, END_REJECTED_EVENT_ID);
 
-        BpmnAwareWithVarsTests.assertThat(processInstance)
-                .hasVariableEntry(VAR_APPROVED, false)
-                .hasVariableEntry(VAR_AMOUNT, AMOUNT_NOT_ALLOWED)
-                .hasVariableEntry(VAR_ITEM, ITEM_NOT_ALLOWED)
-                .isEnded();
-
+        assertThat(processInstance).isEnded().variables()
+                .hasSize(3)
+                .containsEntry(VAR_APPROVED, false)
+                .containsEntry(VAR_AMOUNT, AMOUNT_NOT_ALLOWED)
+                .containsEntry(VAR_ITEM, ITEM_NOT_ALLOWED);
     }
 
 
@@ -84,13 +84,11 @@ public class CamundaApplicationTests {
 
         assertThat(processInstance).hasPassedInOrder(START_EVENT_ID, AMOUNT_GATEWAY_ID, CHARGE_CREDIT_CARD_TASK_ID, SEND_NOTIFICATION_TASK_ID, END_RECEIVED_EVENT_ID);
 
-        BpmnAwareWithVarsTests.assertThat(processInstance)
-                .printVars()
-                .hasNoVariable(VAR_APPROVED)
-                .hasVariableEntry(VAR_AMOUNT, AMOUNT_ALLOWED)
-                .hasVariableEntry(VAR_ITEM, ITEM_NOT_ALLOWED)
-                .isEnded();
-
+        assertThat(processInstance).isEnded().variables()
+                .hasSize(2)
+                .containsEntry(VAR_AMOUNT, AMOUNT_ALLOWED)
+                .containsEntry(VAR_ITEM, ITEM_NOT_ALLOWED)
+                .doesNotContainKey(VAR_APPROVED);
     }
 
 
@@ -107,12 +105,11 @@ public class CamundaApplicationTests {
 
         assertThat(processInstance).hasPassedInOrder(START_EVENT_ID, AMOUNT_GATEWAY_ID, APPROVE_PAYMENT_TASK_ID, CHARGE_CREDIT_CARD_TASK_ID, SEND_NOTIFICATION_TASK_ID, END_RECEIVED_EVENT_ID);
 
-        BpmnAwareWithVarsTests.assertThat(processInstance)
-                .hasVariableEntry(VAR_APPROVED, true)
-                .hasVariableEntry(VAR_AMOUNT, AMOUNT_NOT_ALLOWED)
-                .hasVariableEntry(VAR_ITEM, ITEM_ALLOWED)
-                .isEnded();
-
+        assertThat(processInstance).isEnded().variables()
+                .hasSize(3)
+                .containsEntry(VAR_APPROVED, true)
+                .containsEntry(VAR_AMOUNT, AMOUNT_NOT_ALLOWED)
+                .containsEntry(VAR_ITEM, ITEM_ALLOWED);
     }
 
 
@@ -133,17 +130,53 @@ public class CamundaApplicationTests {
 
         assertThat(processInstance).hasPassedInOrder(START_EVENT_ID, AMOUNT_GATEWAY_ID, APPROVE_PAYMENT_TASK_ID, REVIEW_REJECTED_TASK_ID, CHARGE_CREDIT_CARD_TASK_ID, SEND_NOTIFICATION_TASK_ID, END_RECEIVED_EVENT_ID);
 
-        BpmnAwareWithVarsTests.assertThat(processInstance)
-                .hasVariableEntry(VAR_APPROVED, true)
-                .hasVariableEntry(VAR_AMOUNT, AMOUNT_NOT_ALLOWED)
-                .hasVariableEntry(VAR_ITEM, ITEM_NOT_ALLOWED)
-                .isEnded();
+        assertThat(processInstance).isEnded().variables()
+                .hasSize(3)
+                .containsEntry(VAR_APPROVED, true)
+                .containsEntry(VAR_AMOUNT, AMOUNT_NOT_ALLOWED)
+                .containsEntry(VAR_ITEM, ITEM_NOT_ALLOWED);
+    }
 
+
+    /**
+     * This test shows how to start a process instance at a specific activity
+     * https://docs.camunda.org/manual/7.8/user-guide/process-engine/process-engine-concepts/#start-a-process-instance-at-any-set-of-activities
+     */
+    @Test
+    @Deployment(resources = "/bpmn/payment.bpmn") // test does only require the bpmn, but not the dmn
+    public void testStartProcessBeforeUsertask() {
+
+        ProcessInstance processInstance = startProcessBefore(REVIEW_REJECTED_TASK_ID,
+                VAR_AMOUNT, AMOUNT_NOT_ALLOWED,
+                VAR_ITEM, ITEM_NOT_ALLOWED,
+                VAR_APPROVED, false);
+
+        assertThat(processInstance).isWaitingAt(REVIEW_REJECTED_TASK_ID);
+
+        complete(task(), withVariables(VAR_APPROVED, false));
+
+        assertThat(processInstance).hasPassedInOrder(REVIEW_REJECTED_TASK_ID, END_REJECTED_EVENT_ID);
+
+        assertThat(processInstance).isEnded().variables()
+                .hasSize(3)
+                .containsEntry(VAR_APPROVED, false)
+                .containsEntry(VAR_AMOUNT, AMOUNT_NOT_ALLOWED)
+                .containsEntry(VAR_ITEM, ITEM_NOT_ALLOWED);
     }
 
 
     private ProcessInstance startProcess(String key, Object value, Object... furtherKeyValuePairs) {
+
         return runtimeService.startProcessInstanceByKey(PROCESS_ID, withVariables(key, value, furtherKeyValuePairs));
+    }
+
+
+    private ProcessInstance startProcessBefore(String beforeActivity, String key, Object value, Object... furtherKeyValuePairs) {
+
+        return runtimeService.createProcessInstanceByKey(PROCESS_ID)
+                .startBeforeActivity(beforeActivity)
+                .setVariables(withVariables(key, value, furtherKeyValuePairs))
+                .execute();
     }
 
 
