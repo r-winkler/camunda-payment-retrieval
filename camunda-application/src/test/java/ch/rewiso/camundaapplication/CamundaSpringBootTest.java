@@ -3,7 +3,6 @@ package ch.rewiso.camundaapplication;
 import org.camunda.bpm.engine.ProcessEngine;
 import org.camunda.bpm.engine.RuntimeService;
 import org.camunda.bpm.engine.runtime.ProcessInstance;
-import org.camunda.bpm.engine.test.Deployment;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -13,8 +12,6 @@ import org.springframework.test.context.junit4.SpringRunner;
 
 import static ch.rewiso.camundaapplication.PaymentRetrievalConstants.*;
 import static org.camunda.bpm.engine.test.assertions.bpmn.BpmnAwareTests.*;
-
-//import static org.assertj.core.api.Assertions.assertThat;
 
 
 /**
@@ -183,7 +180,7 @@ public class CamundaSpringBootTest {
                 .cancelAllForActivity(REVIEW_REJECTED_TASK_ID)
                 .execute();
 
-        assertThat(processInstance).hasPassedInOrder(REVIEW_REJECTED_TASK_ID, SEND_NOTIFICATION_TASK_ID, END_RECEIVED_EVENT_ID);
+        assertThat(processInstance).hasPassedInOrder(SEND_NOTIFICATION_TASK_ID, END_RECEIVED_EVENT_ID);
 
         assertThat(processInstance).hasNotPassed(CHARGE_CREDIT_CARD_TASK_ID);
 

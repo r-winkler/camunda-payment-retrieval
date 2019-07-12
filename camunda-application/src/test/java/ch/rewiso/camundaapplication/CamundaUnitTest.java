@@ -6,6 +6,7 @@ import org.camunda.bpm.engine.test.ProcessEngineRule;
 import org.camunda.bpm.spring.boot.starter.test.helper.StandaloneInMemoryTestConfiguration;
 import org.junit.Rule;
 import org.junit.Test;
+import org.springframework.transaction.annotation.Transactional;
 
 import static ch.rewiso.camundaapplication.PaymentRetrievalConstants.*;
 import static org.camunda.bpm.engine.test.assertions.bpmn.BpmnAwareTests.*;
@@ -26,6 +27,7 @@ public class CamundaUnitTest {
     @Rule
     public final ProcessEngineRule processEngineRule = new StandaloneInMemoryTestConfiguration().rule();
 
+
     @Test
     public void testPaymentGetsRejected() {
 
@@ -33,8 +35,9 @@ public class CamundaUnitTest {
                 VAR_AMOUNT, AMOUNT_NOT_ALLOWED,
                 VAR_ITEM, ITEM_NOT_ALLOWED);
 
+        assertThat(processInstance).hasPassedInOrder(START_EVENT_ID, AMOUNT_GATEWAY_ID, APPROVE_PAYMENT_TASK_ID, REVIEW_REJECTED_TASK_ID, END_REJECTED_EVENT_ID);
+        
         assertThat(processInstance).isWaitingAt(REVIEW_REJECTED_TASK_ID);
-
 
         complete(task(), withVariables(VAR_APPROVED, false));
 
