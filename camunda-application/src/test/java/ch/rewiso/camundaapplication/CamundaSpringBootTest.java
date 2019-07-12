@@ -18,7 +18,7 @@ import static org.camunda.bpm.engine.test.assertions.bpmn.BpmnAwareTests.*;
 
 
 /**
- * See https://docs.camunda.org/manual/latest/user-guide/spring-boot-integration/testing/
+ * https://docs.camunda.org/manual/latest/user-guide/spring-boot-integration/testing/
  */
 @RunWith(SpringRunner.class)
 @SpringBootTest(properties = {
@@ -27,7 +27,7 @@ import static org.camunda.bpm.engine.test.assertions.bpmn.BpmnAwareTests.*;
         "camunda.bpm.generate-unique-process-application-name=true",
         "spring.datasource.generate-unique-name=true"
 })
-public class CamundaApplicationTests {
+public class CamundaSpringBootTest {
 
     private static final Long AMOUNT_ALLOWED = 999L;
     private static final Long AMOUNT_NOT_ALLOWED = 1000L;
