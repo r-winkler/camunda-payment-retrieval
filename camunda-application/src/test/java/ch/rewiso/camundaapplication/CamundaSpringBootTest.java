@@ -143,7 +143,6 @@ public class CamundaSpringBootTest {
      * https://docs.camunda.org/manual/7.8/user-guide/process-engine/process-engine-concepts/#start-a-process-instance-at-any-set-of-activities
      */
     @Test
-    @Deployment(resources = "/bpmn/payment.bpmn") // test does only require the bpmn, but not the dmn
     public void testStartProcessBeforeUsertask() {
 
         ProcessInstance processInstance = startProcessBefore(REVIEW_REJECTED_TASK_ID,
@@ -162,6 +161,37 @@ public class CamundaSpringBootTest {
                 .containsEntry(VAR_APPROVED, false)
                 .containsEntry(VAR_AMOUNT, AMOUNT_NOT_ALLOWED)
                 .containsEntry(VAR_ITEM, ITEM_NOT_ALLOWED);
+    }
+
+
+    /**
+     * This test shows how to modify a process instance
+     * https://docs.camunda.org/manual/7.8/user-guide/process-engine/process-engine-concepts/#start-a-process-instance-at-any-set-of-activities
+     * https://docs.camunda.org/manual/7.8/user-guide/process-engine/process-instance-modification/
+     */
+    @Test
+    public void testStartProcessBeforeUsertaskAndModifyProcess() {
+
+        ProcessInstance processInstance = startProcessBefore(REVIEW_REJECTED_TASK_ID,
+                VAR_AMOUNT, AMOUNT_NOT_ALLOWED,
+                VAR_ITEM, ITEM_NOT_ALLOWED);
+
+        assertThat(processInstance).isWaitingAt(REVIEW_REJECTED_TASK_ID);
+
+        runtimeService.createProcessInstanceModification(processInstance.getId())
+                .startBeforeActivity(SEND_NOTIFICATION_TASK_ID)
+                .cancelAllForActivity(REVIEW_REJECTED_TASK_ID)
+                .execute();
+
+        assertThat(processInstance).hasPassedInOrder(REVIEW_REJECTED_TASK_ID, SEND_NOTIFICATION_TASK_ID, END_RECEIVED_EVENT_ID);
+
+        assertThat(processInstance).hasNotPassed(CHARGE_CREDIT_CARD_TASK_ID);
+
+        assertThat(processInstance).isEnded().variables()
+                .hasSize(2)
+                .containsEntry(VAR_AMOUNT, AMOUNT_NOT_ALLOWED)
+                .containsEntry(VAR_ITEM, ITEM_NOT_ALLOWED)
+                .doesNotContainKey(VAR_APPROVED);
     }
 
 
