@@ -2,16 +2,21 @@ package ch.rewiso.camundaapplication;
 
 import org.camunda.bpm.engine.ProcessEngine;
 import org.camunda.bpm.engine.RuntimeService;
+import org.camunda.bpm.engine.delegate.DelegateExecution;
 import org.camunda.bpm.engine.runtime.ProcessInstance;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.test.context.junit4.SpringRunner;
 
 import static ch.rewiso.camundaapplication.PaymentRetrievalConstants.*;
 import static org.camunda.bpm.engine.test.assertions.bpmn.BpmnAwareTests.*;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
 
 
 /**
@@ -31,6 +36,9 @@ public class CamundaSpringBootTest {
     private static final String ITEM_ALLOWED = "item-allowed";
     private static final String ITEM_NOT_ALLOWED = "any-other-item";
 
+    @MockBean
+    private NotificationSender notificationSender;
+
     @Autowired
     @SuppressWarnings("SpringJavaInjectionPointsAutowiringInspection")
     private ProcessEngine processEngine;
@@ -47,7 +55,7 @@ public class CamundaSpringBootTest {
 
 
     @Test
-    public void testPaymentGetsRejected() {
+    public void testPaymentGetsRejected() throws Exception {
 
         final ProcessInstance processInstance = startProcess(
                 VAR_AMOUNT, AMOUNT_NOT_ALLOWED,
@@ -55,8 +63,9 @@ public class CamundaSpringBootTest {
 
         assertThat(processInstance).isWaitingAt(REVIEW_REJECTED_TASK_ID);
 
-
         complete(task(), withVariables(VAR_APPROVED, false));
+
+        verify(notificationSender, times(0)).execute(any(DelegateExecution.class));
 
         assertThat(processInstance).hasPassedInOrder(START_EVENT_ID, AMOUNT_GATEWAY_ID, APPROVE_PAYMENT_TASK_ID, REVIEW_REJECTED_TASK_ID, END_REJECTED_EVENT_ID);
 
@@ -69,7 +78,7 @@ public class CamundaSpringBootTest {
 
 
     @Test
-    public void testPaymentGetsReceived() {
+    public void testPaymentGetsReceived() throws Exception {
 
         final ProcessInstance processInstance = startProcess(
                 VAR_AMOUNT, AMOUNT_ALLOWED,
@@ -78,6 +87,8 @@ public class CamundaSpringBootTest {
         assertThat(processInstance).isWaitingAt(CHARGE_CREDIT_CARD_TASK_ID);
 
         complete(externalTask());
+
+        verify(notificationSender, times(1)).execute(any(DelegateExecution.class));
 
         assertThat(processInstance).hasPassedInOrder(START_EVENT_ID, AMOUNT_GATEWAY_ID, CHARGE_CREDIT_CARD_TASK_ID, SEND_NOTIFICATION_TASK_ID, END_RECEIVED_EVENT_ID);
 
@@ -90,7 +101,7 @@ public class CamundaSpringBootTest {
 
 
     @Test
-    public void testPaymentGetsReceivedBecauseItemIsAllowed() {
+    public void testPaymentGetsReceivedBecauseItemIsAllowed() throws Exception {
 
         final ProcessInstance processInstance = startProcess(
                 VAR_AMOUNT, AMOUNT_NOT_ALLOWED,
@@ -99,6 +110,8 @@ public class CamundaSpringBootTest {
         assertThat(processInstance).isWaitingAt(CHARGE_CREDIT_CARD_TASK_ID);
 
         complete(externalTask());
+
+        verify(notificationSender, times(1)).execute(any(DelegateExecution.class));
 
         assertThat(processInstance).hasPassedInOrder(START_EVENT_ID, AMOUNT_GATEWAY_ID, APPROVE_PAYMENT_TASK_ID, CHARGE_CREDIT_CARD_TASK_ID, SEND_NOTIFICATION_TASK_ID, END_RECEIVED_EVENT_ID);
 
@@ -111,7 +124,7 @@ public class CamundaSpringBootTest {
 
 
     @Test
-    public void testPaymentGetsReceivedBecauseUserApproves() {
+    public void testPaymentGetsReceivedBecauseUserApproves() throws Exception {
 
         final ProcessInstance processInstance = startProcess(
                 VAR_AMOUNT, AMOUNT_NOT_ALLOWED,
@@ -124,6 +137,8 @@ public class CamundaSpringBootTest {
         assertThat(processInstance).isWaitingAt(CHARGE_CREDIT_CARD_TASK_ID);
 
         complete(externalTask());
+
+        verify(notificationSender, times(1)).execute(any(DelegateExecution.class));
 
         assertThat(processInstance).hasPassedInOrder(START_EVENT_ID, AMOUNT_GATEWAY_ID, APPROVE_PAYMENT_TASK_ID, REVIEW_REJECTED_TASK_ID, CHARGE_CREDIT_CARD_TASK_ID, SEND_NOTIFICATION_TASK_ID, END_RECEIVED_EVENT_ID);
 
@@ -140,7 +155,7 @@ public class CamundaSpringBootTest {
      * https://docs.camunda.org/manual/7.8/user-guide/process-engine/process-engine-concepts/#start-a-process-instance-at-any-set-of-activities
      */
     @Test
-    public void testStartProcessBeforeUsertask() {
+    public void testStartProcessBeforeUsertask() throws Exception {
 
         ProcessInstance processInstance = startProcessBefore(REVIEW_REJECTED_TASK_ID,
                 VAR_AMOUNT, AMOUNT_NOT_ALLOWED,
@@ -150,6 +165,8 @@ public class CamundaSpringBootTest {
         assertThat(processInstance).isWaitingAt(REVIEW_REJECTED_TASK_ID);
 
         complete(task(), withVariables(VAR_APPROVED, false));
+
+        verify(notificationSender, times(0)).execute(any(DelegateExecution.class));
 
         assertThat(processInstance).hasPassedInOrder(REVIEW_REJECTED_TASK_ID, END_REJECTED_EVENT_ID);
 

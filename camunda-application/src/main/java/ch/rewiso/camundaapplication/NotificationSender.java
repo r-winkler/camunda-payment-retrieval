@@ -2,13 +2,14 @@ package ch.rewiso.camundaapplication;
 
 import org.camunda.bpm.engine.delegate.DelegateExecution;
 import org.camunda.bpm.engine.delegate.JavaDelegate;
+import org.springframework.stereotype.Component;
 
 import java.util.logging.Logger;
 
 import static ch.rewiso.camundaapplication.PaymentRetrievalConstants.VAR_AMOUNT;
 import static ch.rewiso.camundaapplication.PaymentRetrievalConstants.VAR_ITEM;
 
-
+@Component
 public class NotificationSender implements JavaDelegate {
 
     private final static Logger LOGGER = Logger.getLogger(NotificationSender.class.getName());
